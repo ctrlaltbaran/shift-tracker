@@ -379,7 +379,7 @@ let editingIndex=-1,logVisitCount=0,editVisitCount=0;
 function load(){
   try{const saved=localStorage.getItem(STORAGE_KEY);if(saved){const p=JSON.parse(saved);state.registeredLocations=p.registeredLocations||{};state.detectionRadius=p.detectionRadius||100;state.history=p.history||[];state.autoEndTime=p.autoEndTime||'';state.autoStartTime=p.autoStartTime!==undefined?p.autoStartTime:'09:00';document.getElementById('radiusSlider').value=state.detectionRadius;document.getElementById('radiusLabel').textContent=state.detectionRadius+'m';document.getElementById('autoEndTime').value=state.autoEndTime;document.getElementById('autoStartTime').value=state.autoStartTime;}}catch(e){}
   document.getElementById('logDate').value=new Date().toISOString().split('T')[0];
-  checkForInterruptedShift();startAutoStartCheck();
+  checkForInterruptedShift();startAutoStartCheck();checkMissedAutoStart();
 }
 
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({registeredLocations:state.registeredLocations,detectionRadius:state.detectionRadius,history:state.history,autoEndTime:state.autoEndTime,autoStartTime:state.autoStartTime}));}catch(e){}}
@@ -402,6 +402,31 @@ function discardInterrupted(fullyDiscard=false){try{if(!fullyDiscard){const data
 function startActiveShiftSave(){state.activeSaveInterval=setInterval(()=>{if(state.shiftActive)saveActiveShift();},30000);}
 
 function startAutoStartCheck(){if(state.autoStartCheckInterval)clearInterval(state.autoStartCheckInterval);state.autoStartCheckInterval=setInterval(()=>{if(state.shiftActive||!state.autoStartTime)return;const now=new Date(),day=now.getDay();if(day===0||day===6)return;const[h,m]=state.autoStartTime.split(':').map(Number);if(now.getHours()===h&&now.getMinutes()===m&&now.getSeconds()<30)startShift();},15000);}
+
+function checkMissedAutoStart(){
+  // If auto-start is set, today is a weekday, the start time has already passed,
+  // no shift is currently active, and no shift has been started today — start one backdated.
+  if(!state.autoStartTime||state.shiftActive)return;
+  const now=new Date(),day=now.getDay();
+  if(day===0||day===6)return; // skip weekends
+  const[h,m]=state.autoStartTime.split(':').map(Number);
+  const scheduledStart=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0).getTime();
+  if(Date.now()<scheduledStart)return; // hasn't happened yet today
+  // Check if a shift already exists for today
+  const todayMidnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const alreadyHasShiftToday=state.history.some(s=>s.start>=todayMidnight);
+  if(alreadyHasShiftToday)return;
+  // Start shift backdated to scheduled time
+  state.shiftActive=true;
+  state.shiftStart=scheduledStart;
+  state.visits=[];state.currentLocation=null;state.locationStart=null;
+  document.getElementById('startShiftBtn').disabled=true;
+  document.getElementById('endShiftBtn').disabled=false;
+  document.getElementById('shiftDot').classList.add('active');
+  document.getElementById('shiftStatusText').textContent='Shift active';
+  startGPS();startTimers();startAutoEndCheck();startActiveShiftSave();saveActiveShift();updateShiftBadges();
+  notify(`Shift auto-started from ${formatTimeFromInput(state.autoStartTime)}`);
+}
 
 function startAutoEndCheck(){if(state.autoEndCheckInterval)clearInterval(state.autoEndCheckInterval);state.autoEndCheckInterval=setInterval(()=>{if(!state.shiftActive||!state.autoEndTime)return;const now=new Date();const[h,m]=state.autoEndTime.split(':').map(Number);if(now.getHours()===h&&now.getMinutes()===m&&now.getSeconds()<30){notify('⏰ Auto-end time reached — ending shift');endShift();}},15000);}
 
