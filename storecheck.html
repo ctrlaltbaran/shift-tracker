@@ -345,7 +345,7 @@
 <div class="notification" id="notification"></div>
 
 <script>
-const LOCATIONS=['Store #102','Store #103','Store #104','Store #201','Store #203','Store #205','Store #206','Store #207','Store #208','Store #211','Store #222', 'Store #240', 'Store #364','Store #381','HQ'];
+const LOCATIONS=['Store #102','Store #103','Store #104','Store #201','Store #203','Store #205','Store #206','Store #207','Store #208','Store #211','Store #222','Store #364','Store #381','HQ'];
 const STORAGE_KEY='storecheck_v2';
 const TAG_LABELS={normal:'Normal Visit',support:'Support Request',followup:'Follow-up',other:'Other'};
 let state={visits:[],registeredLocations:{},detectionRadius:100,watchId:null,gpsActive:false,detectedLocation:null};
@@ -399,7 +399,7 @@ function exportCSV(){if(!state.visits.length){notify('No visits to export yet');
 function handleRestore(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);if(data._app!=='StoreCheck'){notify('❌ Not a valid StoreCheck backup');input.value='';return;}const existingIds=new Set(state.visits.map(v=>v.id));let added=0;(data.visits||[]).forEach(v=>{if(!existingIds.has(v.id)){state.visits.push(v);added++;}});state.visits.sort((a,b)=>b.ts-a.ts);Object.entries(data.registeredLocations||{}).forEach(([n,c])=>{if(!state.registeredLocations[n])state.registeredLocations[n]=c;});save();updateDataStats();renderHomeList();renderFieldLog();notify(`✓ Restored! ${added} visit${added!==1?'s':''} added.`);input.value='';}catch{notify('❌ Could not read backup file');input.value='';}};reader.readAsText(file);}
 function clearAllData(){if(!confirm('Delete ALL visit history and GPS pins? This cannot be undone.\n\nExport a backup first.'))return;state.visits=[];state.registeredLocations={};save();updateDataStats();renderHomeList();renderFieldLog();renderLocations();notify('All data cleared');}
 function updateDataStats(){const vc=state.visits.length,pc=Object.keys(state.registeredLocations).length;const kb=Math.round(JSON.stringify({visits:state.visits,registeredLocations:state.registeredLocations}).length/1024);document.getElementById('jsonStat').innerHTML=`<span>${vc}</span> visits · <span>${pc}</span> GPS pins · ~<span>${kb}</span>KB`;document.getElementById('csvStat').innerHTML=`<span>${vc}</span> visits across <span>${new Set(state.visits.map(v=>v.location)).size}</span> locations`;}
-function daysSince(ts){return Math.floor((Date.now()-ts)/86400000);}
+function daysSince(ts){const now=new Date();now.setHours(0,0,0,0);const then=new Date(ts);then.setHours(0,0,0,0);return Math.floor((now-then)/86400000);}
 function pad(n){return n.toString().padStart(2,'0');}
 function formatTime(ts){return new Date(ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});}
 function formatDate(ts){return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
