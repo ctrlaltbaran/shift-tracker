@@ -1,104 +1,120 @@
-# ShiftTrack
+# StoreCheck
 
-A mobile-friendly web app for tracking time spent across work locations during a shift. Built as a single HTML file — no installation, no backend, no accounts required.
+A lightweight Progressive Web App (PWA) for retail district managers to track store visits. GPS auto-detects when you arrive at a location and logs the visit. The home screen shows every location sorted by how long it's been since your last visit so you always know where you're overdue.
 
 ---
 
 ## What It Does
 
-ShiftTrack lets you log which work locations you visit during a shift and how long you spend at each one. At the end of your day you get a full timeline and a breakdown of time per location.
+StoreCheck answers one question: **when did I last visit each store?**
 
-It was built for a retail district manager visiting multiple store locations throughout the day, but works for anyone who moves between a fixed set of locations during a workday.
+Open the app and you instantly see all your locations sorted from most overdue to most recently visited, color-coded by urgency. GPS runs in the background and automatically logs a visit when you arrive at any registered location — once per day per location, so driving by twice doesn't double-count.
 
 ---
 
 ## Features
 
-### Location Tracking
-- **GPS auto-detection** — registers your coordinates at each location once, then detects you automatically when you arrive
-- **Manual check-in** — tap to check in to any location if GPS is unavailable or slow
-- **Detection radius** — adjustable from 30m to 300m depending on how your locations are spaced
-
 ### Home Screen
-- List of all locations sorted by most recently visited
-- Color-coded last visit timestamps (green = recent, amber = a few days, red = overdue)
-- Shows which location you're currently at in real time
+- All locations sorted by most overdue first
+- Color coding — green (recent), amber (7–13 days), red (14+ days or never visited)
+- "Here now" indicator when GPS detects your presence
+- Summary bar showing how many locations are overdue
+- One-tap manual check-in on any location
 
-### Shift Management
-- Start and end shifts manually
-- **Auto-start** — automatically starts a shift at a set time on weekdays if none is active
-- **Auto-end** — automatically ends and saves your shift at a scheduled time
-- **Auto-save & resume** — active shift state is saved every 30 seconds; if your browser closes unexpectedly, the app detects the interrupted shift on next open and offers to resume, save, or discard it
-
-### Timeline & Summary
-- Full chronological timeline of every location visited during the shift
-- Time spent per location with visual bar chart
-- Total shift duration
+### GPS Auto-Detection
+- Continuously scans in the background while the app is open
+- Automatically logs a visit when you arrive within range of a registered location
+- Configurable detection radius (30m–300m)
+- One visit logged per location per day — no duplicates from passing through
 
 ### History
-- All completed shifts saved and accessible
-- Each shift shows date, start/end times, total duration, and locations visited
-- Manual entries are clearly labeled
+- Day-by-day log of every location visited
+- Shows approximate time of each visit
+- Tap ✕ on any visit to remove it if something was logged by mistake
 
-### Log Past Shifts
-- Forgot to start your shift? Enter any past date and manually add location visits with arrival and departure times
-- Full validation — catches missing fields, overlapping times, and reversed arrivals/departures
-
-### Edit Any Shift
-- Tap Edit on any history entry to adjust shift times or individual visit times
-- Add or remove location visits after the fact
+### Log Past Visit
+- Manually log a visit to any location on any past date
+- Useful when GPS missed you or you forgot to open the app
 
 ### Data & Backup
-- **JSON backup** — exports everything (shifts, GPS pins, settings) to a `.json` file that can be re-imported to restore data on any device or browser
-- **CSV export** — exports shift history as a spreadsheet, one row per location visit, ready for Excel or Google Sheets
-- **Restore from backup** — upload a `.json` backup to merge data; duplicates are automatically skipped
+- **JSON backup** — exports everything (visits + GPS pins) to a file you can restore on any device
+- **CSV export** — one row per visit with location, date, and time; open in Excel or Google Sheets
+- **Restore from backup** — upload a JSON backup to merge data; duplicates are skipped automatically
 - **Clear all data** — wipe everything with a confirmation prompt
 
 ---
 
-## Setup
+## File Structure
 
-### First Time
-1. Open the app in your browser
-2. Go to the **Setup** tab
-3. For each location, physically stand there and tap its card — the app saves your GPS coordinates
-4. Set your **Auto-start** and **Auto-end** times if desired
-5. Adjust the **Detection Radius** slider if needed (start at 100m)
+```
+storecheck.html    — the main app
+manifest.json      — PWA manifest (makes it installable)
+sw.js              — service worker (offline support + background persistence)
+icon-192.png       — app icon (192×192)
+icon-512.png       — app icon (512×512)
+README.md          — this file
+```
 
-### GPS Note
-GPS auto-detection requires the app to be served over `https://` or `http://localhost`. The easiest way is to host it on **GitHub Pages** (free), which gives you a permanent `https://` URL where Chrome will save your location permission permanently.
-
-Running from a local `file://` path will cause GPS errors in Chrome — this is a browser security restriction, not a bug in the app.
+All five app files must be in the same folder for the PWA to work correctly.
 
 ---
 
 ## Hosting on GitHub Pages
 
-1. Create a new **public** repository on GitHub
-2. Upload `shift_location_tracker_v6.html` to the repository
-3. Go to **Settings → Pages**, set source to **main / root**, and click Save
-4. After ~60 seconds your app will be live at:
+1. Create a **public** repository on GitHub
+2. Upload all five files to the repository root
+3. Go to **Settings → Pages**, set source to **main / root**, click Save
+4. After ~60 seconds your app is live at:
    ```
-   https://yourusername.github.io/your-repo-name/shift_location_tracker.html
+   https://yourusername.github.io/your-repo-name/storecheck.html
    ```
-5. Bookmark this URL — GPS permission will persist across sessions
 
 ---
 
-## How to Use
+## Installing as a PWA (Recommended)
 
-### Daily Workflow
-1. Open the app (it will auto-start your shift at your scheduled time if configured)
-2. The app detects your location automatically as you move between stores
-3. Use **Manual Check-in** on the Shift tab if GPS is slow
-4. End your shift manually or let it auto-end at your scheduled time
-5. Review your day on the **Timeline** tab
+Installing StoreCheck as a PWA on your phone gives it much better GPS reliability than running it as a browser tab. On Android (including Samsung Fold), an installed PWA runs in its own process and GPS stays active even when the screen is off or you switch apps.
 
-### If You Forget to Start
-Go to the **Log Past** tab, enter the date, set your shift start and end times, and add each location visit manually.
+### On Android (Chrome)
+1. Open your GitHub Pages URL in Chrome
+2. A green **"Install StoreCheck"** banner will appear — tap **Install**
+3. The app is added to your home screen with its own icon
+4. Always open it from the home screen icon, not the browser
 
-### Backing Up Your Data
-Go to the **Data** tab and tap **Download Backup** regularly — especially before clearing your browser cache or switching devices. To restore, use the **Restore from Backup** upload zone on the same tab.
+### On iPhone (Safari)
+1. Open your GitHub Pages URL in Safari
+2. Tap the **Share** button → **Add to Home Screen**
+3. Tap **Add**
+
+> **Note:** GPS reliability on iPhone is lower than Android because iOS aggressively suspends background processes. Opening the app from the home screen icon (not Safari) gives the best results.
+
+---
+
+## First-Time Setup
+
+### Register Your Locations
+1. Drive to each store
+2. Open the app and go to the **Setup** tab
+3. Tap the store's card — the app saves your current GPS coordinates
+4. Repeat for every location
+5. You only need to do this once per location
+
+### Set Detection Radius
+The radius slider in Setup controls how close you need to be before a visit is logged. Start at **100m** and adjust based on how your stores are laid out:
+- Stores in dense areas → smaller radius (50–75m)
+- Stores with large parking lots → larger radius (150–200m)
+
+---
+
+## GPS Notes
+
+GPS auto-logging only works while the app is open. For the best experience:
+
+- **Install as a PWA** (see above) — this is the most reliable setup on Android
+- Open the app at the start of your day and leave it running
+- On Samsung devices, go to **Settings → Apps → StoreCheck → Battery** and set to **Unrestricted** to prevent the OS from suspending it
+
+If GPS misses a visit, use the **Log Visit** tab to add it manually.
 
 ---
 
@@ -113,43 +129,26 @@ Pre-loaded with the following locations:
 | Store #208 | Store #211 | Store #222 | Store #364 |
 | Store #381 | HQ | | |
 
-To change the location list, open the HTML file in a text editor and update the `LOCATIONS` array near the top of the `<script>` section.
-
----
-
-## Technical Notes
-
-- **No server required** — runs entirely in the browser as a single HTML file
-- **Data storage** — all data is saved in the browser's `localStorage`; clearing browser data will erase it (use the JSON backup to prevent data loss)
-- **GPS** — uses the browser's `navigator.geolocation` API with the Haversine formula for distance calculations
-- **Offline capable** — works without an internet connection once loaded (fonts may not load offline)
-- **Auto-save interval** — active shift state is written to localStorage every 30 seconds and on every check-in
-- **Auto-start/end check interval** — the app checks the current time every 15 seconds while the page is open
+To change the location list, open `storecheck.html` in a text editor and update the `LOCATIONS` array near the top of the `<script>` section. After editing, re-upload the file to GitHub.
 
 ---
 
 ## Browser Compatibility
 
-| Browser | GPS | Recommended |
-|---------|-----|-------------|
-| Chrome (desktop & mobile) | ✅ | ✅ Best experience |
-| Safari (iOS) | ✅ | ✅ Works well |
-| Firefox | ✅ | ✅ Works well |
-| Edge | ✅ | ✅ Works well |
-
-> **Important:** GPS requires the page to be served over `https://`. Local `file://` paths will not work for GPS in Chrome regardless of permission settings.
-
----
-
-## File Structure
-
-The entire app is a single self-contained file:
-
-```
-shift_location_tracker.html   — the complete app (HTML + CSS + JS)
-README.md                        — this file
-```
+| Browser | GPS | PWA Install | Recommended |
+|---------|-----|-------------|-------------|
+| Chrome (Android) | ✅ | ✅ | ✅ Best experience |
+| Samsung Internet | ✅ | ✅ | ✅ Works great on Fold |
+| Safari (iOS) | ✅ | ✅ via Add to Home Screen | ✅ Good |
+| Chrome (desktop) | ✅ | ✅ | ✅ Works well |
+| Firefox | ✅ | ❌ | For backup use only |
 
 ---
 
-*Built with Claude — iterated from idea to working prototype in a single conversation.*
+## Data Storage
+
+All data is saved in the browser's `localStorage` on the device where you use the app. Clearing browser data or switching browsers will erase your visit history — use the **JSON backup** in the Data tab regularly to protect your data.
+
+---
+
+*Built with Claude — from idea to working PWA in a single conversation.*
